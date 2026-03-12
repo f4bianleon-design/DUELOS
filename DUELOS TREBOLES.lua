@@ -1,4 +1,4 @@
--- LEON SCRIPT V2 - EXECUTOR EDITION
+-- LEON SCRIPT V2 - FIX (BOTONES CORREGIDOS)
 
 local player = game.Players.LocalPlayer
 local remote = game:GetService("ReplicatedStorage"):WaitForChild("StPatricks2026"):WaitForChild("RemoteEvent")
@@ -83,7 +83,7 @@ label.Font = Enum.Font.GothamBold
 label.TextColor3 = Color3.fromRGB(170,0,255)
 
 --------------------------------------------------
--- MENU PRINCIPAL (MÁS GRANDE)
+-- MENU PRINCIPAL
 --------------------------------------------------
 local frame = Instance.new("Frame")
 frame.Parent = gui
@@ -99,21 +99,20 @@ local mainStroke = Instance.new("UIStroke",frame)
 mainStroke.Color = Color3.fromRGB(170,0,255)
 mainStroke.Thickness = 2
 
--- Scrolling para los botones
 local scroll = Instance.new("ScrollingFrame")
 scroll.Parent = frame
 scroll.Size = UDim2.new(1, -20, 1, -110)
 scroll.Position = UDim2.new(0, 10, 0, 100)
 scroll.BackgroundTransparency = 1
 scroll.ScrollBarThickness = 3
-scroll.CanvasSize = UDim2.new(0, 0, 2, 0) -- Ajustable según agregues más
+scroll.CanvasSize = UDim2.new(0, 0, 1.5, 0) 
 
 local layout = Instance.new("UIListLayout", scroll)
 layout.Padding = UDim.new(0, 8)
 layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
 --------------------------------------------------
--- CABECERA (TITULO Y CONTADORES)
+-- CABECERA
 --------------------------------------------------
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1,0,0,40)
@@ -141,7 +140,7 @@ coords.TextColor3 = Color3.fromRGB(200,200,200)
 --------------------------------------------------
 -- FUNCIÓN PARA CREAR BOTONES
 --------------------------------------------------
-local function crearBoton(texto, color, func)
+local function crearBoton(texto, color)
 	local b = Instance.new("TextButton")
 	b.Parent = scroll
 	b.Size = UDim2.new(0.9, 0, 0, 38)
@@ -153,57 +152,75 @@ local function crearBoton(texto, color, func)
 	Instance.new("UICorner", b)
 	local s = Instance.new("UIStroke", b)
 	s.Color = Color3.fromRGB(170,0,255)
-	b.MouseButton1Click:Connect(func)
 	return b
 end
 
 --------------------------------------------------
--- AGREGAR BOTONES DE TUS SCRIPTS
+-- AGREGAR BOTONES
 --------------------------------------------------
 
 -- SCRIPTS EXTERNOS
-crearBoton("EMOTES", Color3.fromRGB(40,40,40), function()
+local btnEmotes = crearBoton("EMOTES", Color3.fromRGB(40,40,40))
+btnEmotes.MouseButton1Click:Connect(function()
 	loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-7yd7-I-Emote-Script-48024"))()
 end)
 
-crearBoton("ANIMACIONES", Color3.fromRGB(40,40,40), function()
+local btnAnim = crearBoton("ANIMACIONES", Color3.fromRGB(40,40,40))
+btnAnim.MouseButton1Click:Connect(function()
 	loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-GAZER-FE-ANIMATION-EDITOR-54459"))()
 end)
 
-crearBoton("DUELOS", Color3.fromRGB(40,40,40), function()
+local btnDuelos = crearBoton("DUELOS", Color3.fromRGB(40,40,40))
+btnDuelos.MouseButton1Click:Connect(function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/renardofficiel/game/refs/heads/main/m_vs_s_fake/main.lua", true))()
 end)
 
--- SEPARADOR VISUAL
+-- SEPARADOR
 local sep = Instance.new("Frame", scroll)
 sep.Size = UDim2.new(0.9, 0, 0, 2)
 sep.BackgroundColor3 = Color3.fromRGB(170,0,255)
 
--- FUNCIONES ORIGINALES
-local btnSet = crearBoton("SET TP", Color3.fromRGB(30,0,45), function()
+-- FUNCIONES ORIGINALES (CORREGIDAS)
+local btnSet = crearBoton("SET TP", Color3.fromRGB(30,0,45))
+btnSet.MouseButton1Click:Connect(function()
 	local char = player.Character or player.CharacterAdded:Wait()
 	local hrp = char:WaitForChild("HumanoidRootPart")
 	savedTP = hrp.CFrame
 	coords.Text = "TP: "..math.floor(hrp.Position.X).." "..math.floor(hrp.Position.Y).." "..math.floor(hrp.Position.Z)
 end)
 
-local btnClear = crearBoton("CLEAR TP", Color3.fromRGB(30,0,45), function()
+local btnClear = crearBoton("CLEAR TP", Color3.fromRGB(30,0,45))
+btnClear.MouseButton1Click:Connect(function()
 	savedTP = nil
 	coords.Text = "TP: desactivado"
 end)
 
-local btnToggle = crearBoton("SCRIPT OFF", Color3.fromRGB(30,0,45), function()
+local btnToggle = crearBoton("SCRIPT OFF", Color3.fromRGB(30,0,45))
+btnToggle.MouseButton1Click:Connect(function()
 	activo = not activo
-	btnToggle.Text = activo and "SCRIPT ON" or "SCRIPT OFF"
+	if activo then
+		btnToggle.Text = "SCRIPT ON"
+		btnToggle.BackgroundColor3 = Color3.fromRGB(60, 0, 90) -- Brilla un poco más al estar ON
+	else
+		btnToggle.Text = "SCRIPT OFF"
+		btnToggle.BackgroundColor3 = Color3.fromRGB(30,0,45)
+	end
 end)
 
-local btnAFK = crearBoton("ANTI AFK OFF", Color3.fromRGB(30,0,45), function()
+local btnAFK = crearBoton("ANTI AFK OFF", Color3.fromRGB(30,0,45))
+btnAFK.MouseButton1Click:Connect(function()
 	antiAFK = not antiAFK
-	btnAFK.Text = antiAFK and "ANTI AFK ON" or "ANTI AFK OFF"
+	if antiAFK then
+		btnAFK.Text = "ANTI AFK ON"
+		btnAFK.BackgroundColor3 = Color3.fromRGB(60, 0, 90)
+	else
+		btnAFK.Text = "ANTI AFK OFF"
+		btnAFK.BackgroundColor3 = Color3.fromRGB(30,0,45)
+	end
 end)
 
 --------------------------------------------------
--- LOOPS Y SISTEMAS (MANTENIDOS)
+-- LOOPS (NO TOCAR)
 --------------------------------------------------
 
 toggleMenu.MouseButton1Click:Connect(function()
