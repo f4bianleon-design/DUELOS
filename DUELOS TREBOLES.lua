@@ -253,7 +253,7 @@ end)
 
 task.spawn(function()
 	while true do
-		task.wait(15)
+		task.wait(5)
 		if activo and savedTP then
 			if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
 				player.Character.HumanoidRootPart.CFrame = savedTP
