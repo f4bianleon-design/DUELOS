@@ -1,4 +1,4 @@
--- LEON SCRIPT FINAL
+-- LEON SCRIPT FINAL CON INTRO
 
 local player = game.Players.LocalPlayer
 local remote = game:GetService("ReplicatedStorage"):WaitForChild("StPatricks2026"):WaitForChild("RemoteEvent")
@@ -16,7 +16,7 @@ if player.PlayerGui:FindFirstChild("LeonGUI") then
 end
 
 --------------------------------------------------
--- GUI
+-- GUI BASE
 --------------------------------------------------
 
 local gui = Instance.new("ScreenGui")
@@ -24,16 +24,54 @@ gui.Name = "LeonGUI"
 gui.Parent = player.PlayerGui
 gui.ResetOnSpawn = false
 
---------------------------------------------------
--- BLUR
---------------------------------------------------
-
 local blur = Instance.new("BlurEffect")
 blur.Size = 0
 blur.Parent = Lighting
 
 --------------------------------------------------
--- BOTON TOGGLE
+-- PANTALLA DE BIENVENIDA (INTRO ANIMATION)
+--------------------------------------------------
+
+local introFrame = Instance.new("Frame")
+introFrame.Size = UDim2.new(1, 0, 1, 0)
+introFrame.BackgroundTransparency = 1
+introFrame.Parent = gui
+
+local introText = Instance.new("TextLabel")
+introText.Parent = introFrame
+introText.Size = UDim2.new(1, 0, 0, 100)
+introText.Position = UDim2.new(0, 0, 0.45, 0)
+introText.BackgroundTransparency = 1
+introText.Text = "LEON SCRIPT"
+introText.TextColor3 = Color3.fromRGB(170, 0, 255)
+introText.Font = Enum.Font.GothamBold
+introText.TextScaled = true
+introText.TextTransparency = 1 
+
+local introStroke = Instance.new("UIStroke", introText)
+introStroke.Color = Color3.fromRGB(255, 255, 255)
+introStroke.Thickness = 2
+introStroke.Transparency = 1
+
+local function ejecutarIntro()
+	-- Aparece el texto y el blur
+	TweenService:Create(blur, TweenInfo.new(1.2), {Size = 25}):Play()
+	TweenService:Create(introText, TweenInfo.new(1.2), {TextTransparency = 0}):Play()
+	TweenService:Create(introStroke, TweenInfo.new(1.2), {Transparency = 0.5}):Play()
+	
+	task.wait(2.5) 
+	
+	-- Desaparece
+	TweenService:Create(blur, TweenInfo.new(1), {Size = 0}):Play()
+	TweenService:Create(introText, TweenInfo.new(1), {TextTransparency = 1}):Play()
+	TweenService:Create(introStroke, TweenInfo.new(1), {Transparency = 1}):Play()
+	
+	task.wait(1)
+	introFrame:Destroy()
+end
+
+--------------------------------------------------
+-- BOTON TOGGLE (CON TUS LETRAS "AL")
 --------------------------------------------------
 
 local toggleMenu = Instance.new("ImageButton")
@@ -44,6 +82,7 @@ toggleMenu.Image = "rbxassetid://13608413586"
 toggleMenu.BackgroundColor3 = Color3.fromRGB(20,20,20)
 toggleMenu.Active = true
 toggleMenu.Draggable = true
+toggleMenu.Visible = false -- Se oculta hasta que termine la intro
 
 Instance.new("UICorner",toggleMenu).CornerRadius = UDim.new(1,0)
 
@@ -84,29 +123,16 @@ stroke.Thickness = 2
 --------------------------------------------------
 
 task.spawn(function()
-
 	while true do
-		TweenService:Create(
-			stroke,
-			TweenInfo.new(1),
-			{Thickness = 4}
-		):Play()
-
+		TweenService:Create(stroke, TweenInfo.new(1), {Thickness = 4}):Play()
 		task.wait(1)
-
-		TweenService:Create(
-			stroke,
-			TweenInfo.new(1),
-			{Thickness = 2}
-		):Play()
-
+		TweenService:Create(stroke, TweenInfo.new(1), {Thickness = 2}):Play()
 		task.wait(1)
 	end
-
 end)
 
 --------------------------------------------------
--- TITULO
+-- TITULO Y AUTOR
 --------------------------------------------------
 
 local title = Instance.new("TextLabel")
@@ -122,10 +148,6 @@ local titleStroke = Instance.new("UIStroke",title)
 titleStroke.Color = Color3.fromRGB(60,0,100)
 titleStroke.Thickness = 1
 
---------------------------------------------------
--- AUTOR
---------------------------------------------------
-
 local author = Instance.new("TextLabel")
 author.Parent = frame
 author.Size = UDim2.new(1,0,0,20)
@@ -136,7 +158,7 @@ author.TextColor3 = Color3.fromRGB(170,0,255)
 author.TextScaled = true
 
 --------------------------------------------------
--- CONTADOR
+-- CONTADOR Y COORDS
 --------------------------------------------------
 
 local contador = Instance.new("TextLabel")
@@ -146,10 +168,6 @@ contador.Position = UDim2.new(0,0,0.22,0)
 contador.Text = "Tiempo activo: 00:00:00"
 contador.BackgroundTransparency = 1
 contador.TextColor3 = Color3.new(1,1,1)
-
---------------------------------------------------
--- COORDS
---------------------------------------------------
 
 local coords = Instance.new("TextLabel")
 coords.Parent = frame
@@ -164,7 +182,6 @@ coords.TextColor3 = Color3.fromRGB(200,200,200)
 --------------------------------------------------
 
 local function boton(texto,pos)
-
 	local b = Instance.new("TextButton")
 	b.Parent = frame
 	b.Size = UDim2.new(0.75,0,0,40)
@@ -174,20 +191,12 @@ local function boton(texto,pos)
 	b.TextColor3 = Color3.new(1,1,1)
 	b.TextScaled = true
 	b.Font = Enum.Font.GothamBold
-
 	Instance.new("UICorner",b)
-
 	local stroke = Instance.new("UIStroke",b)
 	stroke.Color = Color3.fromRGB(170,0,255)
 	stroke.Thickness = 2
-
 	return b
-
 end
-
---------------------------------------------------
--- BOTONES
---------------------------------------------------
 
 local set = boton("SET TP",0.45)
 local clear = boton("CLEAR TP",0.60)
@@ -195,11 +204,10 @@ local toggle = boton("SCRIPT OFF",0.75)
 local afkBtn = boton("ANTI AFK OFF",0.90)
 
 --------------------------------------------------
--- ABRIR MENU
+-- EVENTOS Y LOOPS
 --------------------------------------------------
 
 toggleMenu.MouseButton1Click:Connect(function()
-
 	if frame.Visible then
 		frame.Visible = false
 		blur.Size = 0
@@ -207,146 +215,75 @@ toggleMenu.MouseButton1Click:Connect(function()
 		frame.Visible = true
 		frame.Size = UDim2.new(0,0,0,0)
 		blur.Size = 18
-
-		TweenService:Create(
-			frame,
-			TweenInfo.new(0.25),
-			{Size = UDim2.new(0,330,0,360)}
-		):Play()
+		TweenService:Create(frame, TweenInfo.new(0.25), {Size = UDim2.new(0,330,0,360)}):Play()
 	end
-
 end)
-
---------------------------------------------------
--- SET TP
---------------------------------------------------
 
 set.MouseButton1Click:Connect(function()
-
 	local char = player.Character or player.CharacterAdded:Wait()
 	local hrp = char:WaitForChild("HumanoidRootPart")
-
 	savedTP = hrp.CFrame
-	local pos = hrp.Position
-
-	coords.Text =
-	"TP: "..math.floor(pos.X).." "..math.floor(pos.Y).." "..math.floor(pos.Z)
-
+	coords.Text = "TP: "..math.floor(hrp.Position.X).." "..math.floor(hrp.Position.Y).." "..math.floor(hrp.Position.Z)
 end)
-
---------------------------------------------------
--- CLEAR TP
---------------------------------------------------
 
 clear.MouseButton1Click:Connect(function()
-
 	savedTP = nil
 	coords.Text = "TP: desactivado"
-
 end)
-
---------------------------------------------------
--- SCRIPT ON OFF
---------------------------------------------------
 
 toggle.MouseButton1Click:Connect(function()
-
 	activo = not activo
-
-	if activo then
-		toggle.Text = "SCRIPT ON"
-	else
-		toggle.Text = "SCRIPT OFF"
-	end
-
+	toggle.Text = activo and "SCRIPT ON" or "SCRIPT OFF"
 end)
-
---------------------------------------------------
--- ANTI AFK
---------------------------------------------------
 
 afkBtn.MouseButton1Click:Connect(function()
-
 	antiAFK = not antiAFK
-
-	if antiAFK then
-		afkBtn.Text = "ANTI AFK ON"
-	else
-		afkBtn.Text = "ANTI AFK OFF"
-	end
-
+	afkBtn.Text = antiAFK and "ANTI AFK ON" or "ANTI AFK OFF"
 end)
-
---------------------------------------------------
--- CONTADOR TIEMPO
---------------------------------------------------
 
 task.spawn(function()
-
 	while true do
 		task.wait(1)
-
 		if activo then
 			tiempo += 1
-
-			local h = math.floor(tiempo / 3600)
-			local m = math.floor((tiempo % 3600) / 60)
-			local s = tiempo % 60
-
-			contador.Text =
-			string.format("Tiempo activo: %02d:%02d:%02d",h,m,s)
+			local h, m, s = math.floor(tiempo/3600), math.floor((tiempo%3600)/60), tiempo%60
+			contador.Text = string.format("Tiempo activo: %02d:%02d:%02d", h, m, s)
 		end
-
 	end
-
 end)
 
---------------------------------------------------
--- ANTI AFK SISTEMA
---------------------------------------------------
-
 player.Idled:Connect(function()
-
 	if antiAFK then
 		VirtualUser:CaptureController()
 		VirtualUser:ClickButton2(Vector2.new())
 	end
-
 end)
 
---------------------------------------------------
--- TP LOOP
---------------------------------------------------
-
 task.spawn(function()
-
 	while true do
 		task.wait(15)
-
 		if activo and savedTP then
-			local char = player.Character
-			if char and char:FindFirstChild("HumanoidRootPart") then
-				char.HumanoidRootPart.CFrame = savedTP
+			if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+				player.Character.HumanoidRootPart.CFrame = savedTP
 			end
 		end
-
 	end
-
 end)
 
---------------------------------------------------
--- RECOLECTAR TREBOLES
---------------------------------------------------
-
 task.spawn(function()
-
 	while true do
 		task.wait(0.03)
-
 		if activo then
 			remote:FireServer("collect")
 		end
-
 	end
+end)
 
+--------------------------------------------------
+-- INICIO FINAL
+--------------------------------------------------
+
+task.spawn(function()
+	ejecutarIntro()
+	toggleMenu.Visible = true -- Muestra tu botón original con "AL" al terminar la intro
 end)
