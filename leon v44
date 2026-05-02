@@ -48,16 +48,27 @@ local titleLoading = Instance.new("TextLabel")
 titleLoading.Size = UDim2.new(1, 0, 0, 120)
 titleLoading.Position = UDim2.new(0, 0, 0.25, 0)
 titleLoading.BackgroundTransparency = 1
-titleLoading.Text = "by alejandro_lxl"
+titleLoading.Text = "LEON SCRIPT V4"
 titleLoading.TextColor3 = Color3.fromRGB(255, 0, 0)
 titleLoading.TextScaled = true
 titleLoading.Font = Enum.Font.Code
 titleLoading.Parent = loadingBackground
 
+-- *** AGREGADO: Créditos by alejandro_lxl en pantalla de carga ***
+local creditsLoading = Instance.new("TextLabel")
+creditsLoading.Size = UDim2.new(1, 0, 0, 30)
+creditsLoading.Position = UDim2.new(0, 0, 0.42, 0)
+creditsLoading.BackgroundTransparency = 1
+creditsLoading.Text = "by alejandro_lxl"
+creditsLoading.TextColor3 = Color3.fromRGB(255, 100, 100)
+creditsLoading.TextScaled = true
+creditsLoading.Font = Enum.Font.Code
+creditsLoading.Parent = loadingBackground
+
 -- Subtítulo
 local subtitleLoading = Instance.new("TextLabel")
 subtitleLoading.Size = UDim2.new(1, 0, 0, 40)
-subtitleLoading.Position = UDim2.new(0, 0, 0.42, 0)
+subtitleLoading.Position = UDim2.new(0, 0, 0.48, 0) -- Ajustado para dar espacio a créditos
 subtitleLoading.BackgroundTransparency = 1
 subtitleLoading.Text = "CARGANDO..."
 subtitleLoading.TextColor3 = Color3.fromRGB(255, 100, 100)
@@ -100,6 +111,7 @@ task.wait(1.5)
 
 if matrixConnection then matrixConnection:Disconnect() end
 TweenService:Create(titleLoading, TweenInfo.new(1, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
+TweenService:Create(creditsLoading, TweenInfo.new(1, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play() -- Fade out créditos
 TweenService:Create(subtitleLoading, TweenInfo.new(1, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
 TweenService:Create(progressFrame, TweenInfo.new(1, Enum.EasingStyle.Quad), {BackgroundTransparency = 1}):Play()
 TweenService:Create(progressBar, TweenInfo.new(1, Enum.EasingStyle.Quad), {BackgroundTransparency = 1}):Play()
@@ -210,8 +222,8 @@ function loadMenu()
 
     local menuVisible = true
     local mainFrame = Instance.new("Frame")
-    mainFrame.Size = UDim2.new(0, 240, 0, 220)
-    mainFrame.Position = UDim2.new(0.5, -120, 0.5, -110)
+    mainFrame.Size = UDim2.new(0, 260, 0, 240) -- Aumentado para dar espacio a créditos
+    mainFrame.Position = UDim2.new(0.5, -130, 0.5, -120)
     mainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
     mainFrame.BorderSizePixel = 0
     mainFrame.Parent = screenGui
@@ -344,10 +356,10 @@ function loadMenu()
     mainStroke.Thickness = 2.5
     mainStroke.Parent = mainFrame
 
-    -- Título
+    -- *** Título principal ***
     local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, 0, 0, 40)
-    title.Position = UDim2.new(0, 0, 0, 0)
+    title.Size = UDim2.new(1, 0, 0, 35)
+    title.Position = UDim2.new(0, 0, 0, 5)
     title.BackgroundTransparency = 1
     title.Text = "LEON SCRIPT V4"
     title.TextColor3 = Color3.fromRGB(255, 50, 50)
@@ -355,10 +367,22 @@ function loadMenu()
     title.Font = Enum.Font.Code
     title.Parent = mainFrame
 
-    -- ESP Button
+    -- *** AGREGADO: Créditos by alejandro_lxl en menú principal ***
+    local creditsMenu = Instance.new("TextLabel")
+    creditsMenu.Size = UDim2.new(1, 0, 0, 20)
+    creditsMenu.Position = UDim2.new(0, 0, 0, 38)
+    creditsMenu.BackgroundTransparency = 1
+    creditsMenu.Text = "by alejandro_lxl"
+    creditsMenu.TextColor3 = Color3.fromRGB(150, 50, 50)
+    creditsMenu.TextScaled = true
+    creditsMenu.Font = Enum.Font.Code
+    creditsMenu.TextSize = 14 -- Tamaño más pequeño para créditos
+    creditsMenu.Parent = mainFrame
+
+    -- ESP Button (posiciones ajustadas)
     local espButton = Instance.new("TextButton")
     espButton.Size = UDim2.new(0.9, 0, 0, 35)
-    espButton.Position = UDim2.new(0.05, 0, 0.22, 0)
+    espButton.Position = UDim2.new(0.05, 0, 0.27, 0)
     espButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     espButton.Text = "ESP: OFF"
     espButton.TextColor3 = Color3.fromRGB(255, 50, 50)
@@ -375,10 +399,10 @@ function loadMenu()
     espStroke.Thickness = 2
     espStroke.Parent = espButton
 
-    -- Aimbot Button
+    -- Aimbot Button (posiciones ajustadas)
     local aimbotButton = Instance.new("TextButton")
     aimbotButton.Size = UDim2.new(0.9, 0, 0, 35)
-    aimbotButton.Position = UDim2.new(0.05, 0, 0.40, 0)
+    aimbotButton.Position = UDim2.new(0.05, 0, 0.45, 0)
     aimbotButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     aimbotButton.Text = "Aimbot: OFF"
     aimbotButton.TextColor3 = Color3.fromRGB(255, 50, 50)
@@ -395,10 +419,10 @@ function loadMenu()
     aimbotStroke.Thickness = 2
     aimbotStroke.Parent = aimbotButton
 
-    -- Farm Button
+    -- Farm Button (posiciones ajustadas)
     local farmButton = Instance.new("TextButton")
     farmButton.Size = UDim2.new(0.9, 0, 0, 35)
-    farmButton.Position = UDim2.new(0.05, 0, 0.58, 0)
+    farmButton.Position = UDim2.new(0.05, 0, 0.63, 0)
     farmButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     farmButton.Text = "Farm Event: OFF"
     farmButton.TextColor3 = Color3.fromRGB(255, 50, 50)
@@ -415,10 +439,10 @@ function loadMenu()
     farmStroke.Thickness = 2
     farmStroke.Parent = farmButton
 
-    -- Rejoin Button
+    -- Rejoin Button (posiciones ajustadas)
     local rejoinButton = Instance.new("TextButton")
     rejoinButton.Size = UDim2.new(0.9, 0, 0, 35)
-    rejoinButton.Position = UDim2.new(0.05, 0, 0.76, 0)
+    rejoinButton.Position = UDim2.new(0.05, 0, 0.81, 0)
     rejoinButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     rejoinButton.Text = "Rejoin Server"
     rejoinButton.TextColor3 = Color3.fromRGB(255, 50, 50)
@@ -535,8 +559,8 @@ function loadMenu()
         if menuVisible then
             mainFrame.Visible = true
             TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back), {
-                Size = UDim2.new(0, 240, 0, 220),
-                Position = UDim2.new(0.5, -120, 0.5, -110)
+                Size = UDim2.new(0, 260, 0, 240),
+                Position = UDim2.new(0.5, -130, 0.5, -120)
             }):Play()
             toggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
         else
@@ -609,7 +633,7 @@ function loadMenu()
         game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer)
     end)
 
-    -- Draggable menú principal
+    -- Draggable menú principal (título ahora incluye créditos)
     local dragging = false
     local dragStart = nil
     local startPos = nil
@@ -622,7 +646,21 @@ function loadMenu()
         end
     end)
 
+    creditsMenu.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+        end
+    end)
+
     title.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    creditsMenu.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = false
         end
@@ -679,8 +717,8 @@ function loadMenu()
     toggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
 
     TweenService:Create(mainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Back), {
-        Size = UDim2.new(0, 240, 0, 220),
-        Position = UDim2.new(0.5, -120, 0.5, -110)
+        Size = UDim2.new(0, 260, 0, 240),
+        Position = UDim2.new(0.5, -130, 0.5, -120)
     }):Play()
 
     TweenService:Create(mainStroke, TweenInfo.new(0.8), {Transparency = 0}):Play()
