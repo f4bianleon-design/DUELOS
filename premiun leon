@@ -1,0 +1,853 @@
+-- LocalScript en StarterPlayerScripts
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+-- *** VARIABLES HITBOX (AGREGADAS) ***
+local hitboxActive = false
+local hitboxSize = 12
+local originalSizes = {}
+
+-- *** FUNCIÓN EXPANDIR HITBOX (AGREGADA) ***
+function expandHitbox()
+    if not hitboxActive then return end
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local humanoidRootPart = player.Character.HumanoidRootPart
+            local originalSize = originalSizes[player]
+            
+            if not originalSize then
+                originalSize = humanoidRootPart.Size
+                originalSizes[player] = originalSize
+            end
+            
+            humanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+            humanoidRootPart.Transparency = 0.7
+            humanoidRootPart.BrickColor = BrickColor.new("Bright red")
+            humanoidRootPart.Material = Enum.Material.ForceField
+            humanoidRootPart.CanCollide = false
+        end
+    end
+end
+
+-- *** FUNCIÓN RESET HITBOX (AGREGADA) ***
+function resetHitbox()
+    for player, size in pairs(originalSizes) do
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = player.Character.HumanoidRootPart
+            hrp.Size = size
+            hrp.Transparency = 0
+            hrp.BrickColor = BrickColor.new("Medium stone grey")
+            hrp.Material = Enum.Material.Plastic
+            hrp.CanCollide = true
+        end
+    end
+    originalSizes = {}
+end
+
+-- PANTALLA DE CARGA MEJORADA (SIN CAMBIOS)
+local loadingGui = Instance.new("ScreenGui")
+loadingGui.Name = "LoadingScreen"
+loadingGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+loadingGui.ResetOnSpawn = false
+loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local loadingBackground = Instance.new("Frame")
+loadingBackground.Size = UDim2.new(1, 0, 1, 0)
+loadingBackground.Position = UDim2.new(0, 0, 0, 0)
+loadingBackground.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+loadingBackground.BorderSizePixel = 0
+loadingBackground.Parent = loadingGui
+
+local matrixConnection
+local function createMatrixEffect()
+    local chars = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン"
+    matrixConnection = RunService.Heartbeat:Connect(function()
+        for i = 1, 30 do
+            local x = math.random(1, 1920)
+            local y = math.random(1, 1080)
+            local text = Instance.new("TextLabel")
+            text.Size = UDim2.new(0, 18, 0, 18)
+            text.Position = UDim2.new(0, x, 0, y)
+            text.BackgroundTransparency = 1
+            text.Text = chars:sub(math.random(1, #chars), math.random(1, #chars))
+            text.TextColor3 = Color3.fromRGB(0, 255, 0)
+            text.TextScaled = true
+            text.Font = Enum.Font.Code
+            text.Parent = loadingBackground
+            game:GetService("Debris"):AddItem(text, 3)
+        end
+    end)
+end
+
+local titleLoading = Instance.new("TextLabel")
+titleLoading.Size = UDim2.new(1, 0, 0, 120)
+titleLoading.Position = UDim2.new(0, 0, 0.25, 0)
+titleLoading.BackgroundTransparency = 1
+titleLoading.Text = "LEON SCRIPT V4"
+titleLoading.TextColor3 = Color3.fromRGB(255, 0, 0)
+titleLoading.TextScaled = true
+titleLoading.Font = Enum.Font.Code
+titleLoading.Parent = loadingBackground
+
+local creditsLoading = Instance.new("TextLabel")
+creditsLoading.Size = UDim2.new(1, 0, 0, 30)
+creditsLoading.Position = UDim2.new(0, 0, 0.42, 0)
+creditsLoading.BackgroundTransparency = 1
+creditsLoading.Text = "by alejandro_lxl"
+creditsLoading.TextColor3 = Color3.fromRGB(255, 100, 100)
+creditsLoading.TextScaled = true
+creditsLoading.Font = Enum.Font.Code
+creditsLoading.Parent = loadingBackground
+
+local subtitleLoading = Instance.new("TextLabel")
+subtitleLoading.Size = UDim2.new(1, 0, 0, 40)
+subtitleLoading.Position = UDim2.new(0, 0, 0.48, 0)
+subtitleLoading.BackgroundTransparency = 1
+subtitleLoading.Text = "CARGANDO..."
+subtitleLoading.TextColor3 = Color3.fromRGB(255, 100, 100)
+subtitleLoading.TextScaled = true
+subtitleLoading.Font = Enum.Font.Code
+subtitleLoading.Parent = loadingBackground
+
+local progressFrame = Instance.new("Frame")
+progressFrame.Size = UDim2.new(0.4, 0, 0, 25)
+progressFrame.Position = UDim2.new(0.3, 0, 0.55, 0)
+progressFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+progressFrame.BorderSizePixel = 0
+progressFrame.Parent = loadingBackground
+
+local progressCorner = Instance.new("UICorner")
+progressCorner.CornerRadius = UDim.new(0, 12)
+progressCorner.Parent = progressFrame
+
+local progressBar = Instance.new("Frame")
+progressBar.Size = UDim2.new(0, 0, 1, 0)
+progressBar.Position = UDim2.new(0, 0, 0, 0)
+progressBar.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+progressBar.BorderSizePixel = 0
+progressBar.Parent = progressFrame
+
+local progressCornerBar = Instance.new("UICorner")
+progressCornerBar.CornerRadius = UDim.new(0, 12)
+progressCornerBar.Parent = progressBar
+
+createMatrixEffect()
+TweenService:Create(progressBar, TweenInfo.new(2.5, Enum.EasingStyle.Quad), {
+    Size = UDim2.new(1, 0, 1, 0)
+}):Play()
+
+task.wait(2)
+subtitleLoading.Text = "¡GRACIAS POR USARME DELTERO!"
+task.wait(1.5)
+
+if matrixConnection then matrixConnection:Disconnect() end
+TweenService:Create(titleLoading, TweenInfo.new(1, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
+TweenService:Create(creditsLoading, TweenInfo.new(1, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
+TweenService:Create(subtitleLoading, TweenInfo.new(1, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
+TweenService:Create(progressFrame, TweenInfo.new(1, Enum.EasingStyle.Quad), {BackgroundTransparency = 1}):Play()
+TweenService:Create(progressBar, TweenInfo.new(1, Enum.EasingStyle.Quad), {BackgroundTransparency = 1}):Play()
+TweenService:Create(loadingBackground, TweenInfo.new(1.2, Enum.EasingStyle.Quad), {BackgroundTransparency = 1}):Play()
+
+task.wait(1.2)
+loadingGui:Destroy()
+task.wait(0.1)
+
+-- *** SISTEMA DE KEY ***
+local keyVerified = false
+
+local keyGui = Instance.new("ScreenGui")
+keyGui.Name = "LeonKey"
+keyGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+keyGui.ResetOnSpawn = false
+
+local keyFrame = Instance.new("Frame")
+keyFrame.Size = UDim2.new(0, 300, 0, 150)
+keyFrame.Position = UDim2.new(0.5, -150, 0.5, -75)
+keyFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+keyFrame.BorderSizePixel = 0
+keyFrame.Parent = keyGui
+
+local keyCorner = Instance.new("UICorner")
+keyCorner.CornerRadius = UDim.new(0, 15)
+keyCorner.Parent = keyFrame
+
+local keyStroke = Instance.new("UIStroke")
+keyStroke.Color = Color3.fromRGB(255, 0, 0)
+keyStroke.Thickness = 3
+keyStroke.Parent = keyFrame
+
+local keyTitle = Instance.new("TextLabel")
+keyTitle.Size = UDim2.new(1, 0, 0, 50)
+keyTitle.Position = UDim2.new(0, 0, 0, 10)
+keyTitle.BackgroundTransparency = 1
+keyTitle.Text = "🔑 LEON SCRIPT V4 - KEY"
+keyTitle.TextColor3 = Color3.fromRGB(255, 50, 50)
+keyTitle.TextScaled = true
+keyTitle.Font = Enum.Font.Code
+keyTitle.Parent = keyFrame
+
+local keyInput = Instance.new("TextBox")
+keyInput.Size = UDim2.new(0.8, 0, 0, 40)
+keyInput.Position = UDim2.new(0.1, 0, 0.45, 0)
+keyInput.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+keyInput.Text = ""
+keyInput.PlaceholderText = "Ingresa la key"
+keyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyInput.TextScaled = true
+keyInput.Font = Enum.Font.Code
+keyInput.Parent = keyFrame
+
+local keyInputCorner = Instance.new("UICorner")
+keyInputCorner.CornerRadius = UDim.new(0, 10)
+keyInputCorner.Parent = keyInput
+
+local keyInputStroke = Instance.new("UIStroke")
+keyInputStroke.Color = Color3.fromRGB(100, 100, 100)
+keyInputStroke.Thickness = 2
+keyInputStroke.Parent = keyInput
+
+local verifyButton = Instance.new("TextButton")
+verifyButton.Size = UDim2.new(0.8, 0, 0, 35)
+verifyButton.Position = UDim2.new(0.1, 0, 0.7, 0)
+verifyButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+verifyButton.Text = "VERIFICAR"
+verifyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+verifyButton.TextScaled = true
+verifyButton.Font = Enum.Font.Code
+verifyButton.Parent = keyFrame
+
+local verifyCorner = Instance.new("UICorner")
+verifyCorner.CornerRadius = UDim.new(0, 10)
+verifyCorner.Parent = verifyButton
+
+verifyButton.MouseButton1Click:Connect(function()
+    if keyInput.Text:lower() == "leon" then
+        keyVerified = true
+        TweenService:Create(keyFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(0, 0, 0, 0)
+        }):Play()
+        task.wait(0.5)
+        keyGui:Destroy()
+        loadMenu()
+        print("✅ KEY VERIFICADA - LEON SCRIPT V4 ACTIVADO")
+    else
+        keyInput.Text = ""
+        keyInput.PlaceholderText = "❌ Key incorrecta VALISTE"
+        TweenService:Create(keyInputStroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(255, 0, 0)}):Play()
+        task.wait(0.5)
+        keyInput.PlaceholderText = "Ingresa la key: leon"
+        TweenService:Create(keyInputStroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+    end
+end)
+
+-- *** FUNCIÓN PRINCIPAL DEL MENÚ (MODIFICADA PARA HITBOX) ***
+function loadMenu()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "LeonMenu"
+    screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+    screenGui.ResetOnSpawn = false
+
+    local menuVisible = true
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = UDim2.new(0, 500, 0, 380) -- 🔧 AUMENTADO para Hitbox + Slider
+    mainFrame.Position = UDim2.new(0.5, -250, 0.5, -190)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    mainFrame.Visible = false
+
+    -- *** LEON HUB TAG SYSTEM (SIN CAMBIOS) ***
+    local leonHubTags = {}
+    local function createLeonHubTag(char)
+        if char:FindFirstChild("LeonHubTag") then return end
+        local billboard = Instance.new("BillboardGui")
+        billboard.Name = "LeonHubTag"
+        billboard.Size = UDim2.new(0, 100, 0, 30)
+        billboard.StudsOffset = Vector3.new(0, 3, 0)
+        billboard.Adornee = char:FindFirstChild("Head")
+        billboard.Parent = char
+        local tagLabel = Instance.new("TextLabel")
+        tagLabel.Size = UDim2.new(1, 0, 1, 0)
+        tagLabel.BackgroundTransparency = 1
+        tagLabel.Text = "leon hub"
+        tagLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+        tagLabel.TextScaled = true
+        tagLabel.Font = Enum.Font.Code
+        tagLabel.TextStrokeTransparency = 0
+        tagLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        tagLabel.Parent = billboard
+        leonHubTags[char] = billboard
+    end
+
+    local function removeLeonHubTag(char)
+        local tag = char:FindFirstChild("LeonHubTag")
+        if tag then tag:Destroy() end
+        if leonHubTags[char] then leonHubTags[char] = nil end
+    end
+
+    local function checkLeonHubPlayer(p)
+        if p == LocalPlayer or not p.Character then return end
+        if p:GetAttribute("LeonHubUser") == true then
+            createLeonHubTag(p.Character)
+        else
+            removeLeonHubTag(p.Character)
+        end
+    end
+
+    LocalPlayer:SetAttribute("LeonHubUser", true)
+    for _, p in ipairs(Players:GetPlayers()) do
+        checkLeonHubPlayer(p)
+        p.CharacterAdded:Connect(function(char) task.wait(1) checkLeonHubPlayer(p) end)
+        p:GetAttributeChangedSignal("LeonHubUser"):Connect(function() checkLeonHubPlayer(p) end)
+    end
+    Players.PlayerAdded:Connect(function(p)
+        p.CharacterAdded:Connect(function(char) task.wait(1) checkLeonHubPlayer(p) end)
+        p:GetAttributeChangedSignal("LeonHubUser"):Connect(function() checkLeonHubPlayer(p) end)
+    end)
+
+    -- *** BOTÓN LS MOVIBLE (SIN CAMBIOS) ***
+    local toggleButton = Instance.new("TextButton")
+    toggleButton.Size = UDim2.new(0, 50, 0, 50)
+    toggleButton.Position = UDim2.new(0, 20, 0, 20)
+    toggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    toggleButton.Text = "LS"
+    toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    toggleButton.TextScaled = true
+    toggleButton.Font = Enum.Font.Code
+    toggleButton.Parent = screenGui
+
+    local toggleCorner = Instance.new("UICorner")
+    toggleCorner.CornerRadius = UDim.new(0.5, 0)
+    toggleCorner.Parent = toggleButton
+
+    local toggleStroke = Instance.new("UIStroke")
+    toggleStroke.Color = Color3.fromRGB(0, 0, 0)
+    toggleStroke.Thickness = 3
+    toggleStroke.Parent = toggleButton
+
+    -- Draggable botón LS
+    local draggingButton = false
+    local dragStartButton = nil
+    local startPosButton = nil
+
+    toggleButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            draggingButton = true
+            dragStartButton = input.Position
+            startPosButton = toggleButton.Position
+        end
+    end)
+
+    toggleButton.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            draggingButton = false
+        end
+    end)
+
+    -- *** ESTILOS VISUALES PRINCIPALES ***
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = mainFrame
+
+    local mainStroke = Instance.new("UIStroke")
+    mainStroke.Color = Color3.fromRGB(255, 50, 50)
+    mainStroke.Thickness = 2.5
+    mainStroke.Parent = mainFrame
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 35)
+    title.Position = UDim2.new(0, 0, 0, 5)
+    title.BackgroundTransparency = 1
+    title.Text = "LEON SCRIPT V4"
+    title.TextColor3 = Color3.fromRGB(255, 50, 50)
+    title.TextScaled = true
+    title.Font = Enum.Font.Code
+    title.Parent = mainFrame
+
+    local creditsMenu = Instance.new("TextLabel")
+    creditsMenu.Size = UDim2.new(1, 0, 0, 20)
+    creditsMenu.Position = UDim2.new(0, 0, 0, 38)
+    creditsMenu.BackgroundTransparency = 1
+    creditsMenu.Text = "by alejandro_lxl"
+    creditsMenu.TextColor3 = Color3.fromRGB(150, 50, 50)
+    creditsMenu.TextScaled = true
+    creditsMenu.Font = Enum.Font.Code
+    creditsMenu.TextSize = 14
+    creditsMenu.Parent = mainFrame
+
+    -- *** SCROLL FRAME PARA BOTONES (NUEVO) ***
+    local scrollFrame = Instance.new("ScrollingFrame")
+    scrollFrame.Size = UDim2.new(0.95, 0, 0.78, -50)
+    scrollFrame.Position = UDim2.new(0.025, 0, 0.22, 0)
+    scrollFrame.BackgroundTransparency = 1
+    scrollFrame.BorderSizePixel = 0
+    scrollFrame.ScrollBarThickness = 6
+    scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 50, 50)
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 600) -- Alto suficiente para todos los botones
+    scrollFrame.Parent = mainFrame
+
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    listLayout.Padding = UDim.new(0, 8)
+    listLayout.Parent = scrollFrame
+
+    -- *** BOTÓN HITBOX EXPANDER CON SLIDER (NUEVO) ***
+    local hitboxToggleBtn = Instance.new("TextButton")
+    hitboxToggleBtn.Size = UDim2.new(1, -12, 0, 45)
+    hitboxToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    hitboxToggleBtn.Text = "📦 HITBOX EXPANDER\n❌ OFF"
+    hitboxToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    hitboxToggleBtn.Font = Enum.Font.GothamBold
+    hitboxToggleBtn.TextSize = 14
+    hitboxToggleBtn.LayoutOrder = 1
+    hitboxToggleBtn.Parent = scrollFrame
+
+    local hitboxBtnCorner = Instance.new("UICorner")
+    hitboxBtnCorner.CornerRadius = UDim.new(0, 12)
+    hitboxBtnCorner.Parent = hitboxToggleBtn
+
+    local hitboxBtnStroke = Instance.new("UIStroke")
+    hitboxBtnStroke.Color = Color3.fromRGB(255, 100, 100)
+    hitboxBtnStroke.Thickness = 2
+    hitboxBtnStroke.Parent = hitboxToggleBtn
+
+    -- *** SLIDER HITBOX (NUEVO) ***
+    local hitboxSliderFrame = Instance.new("Frame")
+    hitboxSliderFrame.Size = UDim2.new(1, -12, 0, 70)
+    hitboxSliderFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    hitboxSliderFrame.LayoutOrder = 2
+    hitboxSliderFrame.Parent = scrollFrame
+
+    local hitboxSliderCorner = Instance.new("UICorner")
+    hitboxSliderCorner.CornerRadius = UDim.new(0, 12)
+    hitboxSliderCorner.Parent = hitboxSliderFrame
+
+    local hitboxLabel = Instance.new("TextLabel")
+    hitboxLabel.Size = UDim2.new(1, 0, 0.5, 0)
+    hitboxLabel.BackgroundTransparency = 1
+    hitboxLabel.Text = "📦 HITBOX SIZE: " .. hitboxSize
+    hitboxLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    hitboxLabel.Font = Enum.Font.GothamBold
+    hitboxLabel.TextSize = 14
+    hitboxLabel.Parent = hitboxSliderFrame
+
+    local slider = Instance.new("Frame")
+    slider.Size = UDim2.new(1, -20, 0.4, 0)
+    slider.Position = UDim2.new(0, 10, 0.5, 0)
+    slider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    slider.Parent = hitboxSliderFrame
+
+    local sliderCorner = Instance.new("UICorner")
+    sliderCorner.CornerRadius = UDim.new(0, 6)
+    sliderCorner.Parent = slider
+
+    local sliderBtn = Instance.new("TextButton")
+    sliderBtn.Size = UDim2.new(0, 20, 1, 0)
+    sliderBtn.Position = UDim2.new((hitboxSize-8)/16, -10, 0, 0)
+    sliderBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+    sliderBtn.Text = ""
+    sliderBtn.Parent = slider
+
+    local sliderBtnCorner = Instance.new("UICorner")
+    sliderBtnCorner.CornerRadius = UDim.new(0, 10)
+    sliderBtnCorner.Parent = sliderBtn
+
+    -- *** LÓGICA SLIDER HITBOX ***
+    local draggingSlider = false
+    sliderBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            draggingSlider = true
+        end
+    end)
+
+    sliderBtn.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            draggingSlider = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if draggingSlider and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mouse = LocalPlayer:GetMouse()
+            local relativeX = math.clamp((mouse.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
+            hitboxSize = math.floor(8 + relativeX * 16)
+            sliderBtn.Position = UDim2.new(relativeX, -10, 0, 0)
+            hitboxLabel.Text = "📦 HITBOX SIZE: " .. hitboxSize
+            if hitboxActive then expandHitbox() end
+        end
+    end)
+
+    -- *** BOTONES EXISTENTES (AJUSTADOS) ***
+    local espButton = Instance.new("TextButton")
+    espButton.Size = UDim2.new(1, -12, 0, 35)
+    espButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    espButton.Text = "👁️ ESP: OFF"
+    espButton.TextColor3 = Color3.fromRGB(255, 50, 50)
+    espButton.TextScaled = true
+    espButton.Font = Enum.Font.Code
+    espButton.LayoutOrder = 3
+    espButton.Parent = scrollFrame
+
+    local espCorner = Instance.new("UICorner")
+    espCorner.CornerRadius = UDim.new(0, 8)
+    espCorner.Parent = espButton
+
+    local espStroke = Instance.new("UIStroke")
+    espStroke.Color = Color3.fromRGB(255, 50, 50)
+    espStroke.Thickness = 2
+    espStroke.Parent = espButton
+
+    local aimbotButton = Instance.new("TextButton")
+    aimbotButton.Size = UDim2.new(1, -12, 0, 35)
+    aimbotButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    aimbotButton.Text = "🎯 Aimbot: OFF"
+    aimbotButton.TextColor3 = Color3.fromRGB(255, 50, 50)
+    aimbotButton.TextScaled = true
+    aimbotButton.Font = Enum.Font.Code
+    aimbotButton.LayoutOrder = 4
+    aimbotButton.Parent = scrollFrame
+
+    local aimbotCorner = Instance.new("UICorner")
+    aimbotCorner.CornerRadius = UDim.new(0, 8)
+    aimbotCorner.Parent = aimbotButton
+
+    local aimbotStroke = Instance.new("UIStroke")
+    aimbotStroke.Color = Color3.fromRGB(255, 50, 50)
+    aimbotStroke.Thickness = 2
+    aimbotStroke.Parent = aimbotButton
+
+    local farmButton = Instance.new("TextButton")
+    farmButton.Size = UDim2.new(1, -12, 0, 35)
+    farmButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    farmButton.Text = "🌾 Farm Event: OFF"
+    farmButton.TextColor3 = Color3.fromRGB(255, 50, 50)
+    farmButton.TextScaled = true
+    farmButton.Font = Enum.Font.Code
+    farmButton.LayoutOrder = 5
+    farmButton.Parent = scrollFrame
+
+    local farmCorner = Instance.new("UICorner")
+    farmCorner.CornerRadius = UDim.new(0, 8)
+    farmCorner.Parent = farmButton
+
+    local farmStroke = Instance.new("UIStroke")
+    farmStroke.Color = Color3.fromRGB(255, 50, 50)
+    farmStroke.Thickness = 2
+    farmStroke.Parent = farmButton
+
+    local rejoinButton = Instance.new("TextButton")
+    rejoinButton.Size = UDim2.new(1, -12, 0, 35)
+    rejoinButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    rejoinButton.Text = "🔄 Rejoin Server"
+    rejoinButton.TextColor3 = Color3.fromRGB(255, 50, 50)
+    rejoinButton.TextScaled = true
+    rejoinButton.Font = Enum.Font.Code
+    rejoinButton.LayoutOrder = 6
+    rejoinButton.Parent = scrollFrame
+
+    local rejoinCorner = Instance.new("UICorner")
+    rejoinCorner.CornerRadius = UDim.new(0, 8)
+    rejoinCorner.Parent = rejoinButton
+
+    local rejoinStroke = Instance.new("UIStroke")
+    rejoinStroke.Color = Color3.fromRGB(255, 50, 50)
+    rejoinStroke.Thickness = 2
+    rejoinStroke.Parent = rejoinButton
+
+    -- *** VARIABLES DE ESTADO ***
+    local espEnabled = false
+    local espConnections = {}
+    local aimbotEnabled = false
+    local aimbotLoaded = false
+    local farmEnabled = false
+    local farmCoroutine = nil
+
+    -- *** LOOP HITBOX (AGREGADO) ***
+    spawn(function()
+        while wait(0.1) do
+            if hitboxActive then
+                expandHitbox()
+            end
+        end
+    end)
+
+    -- *** FUNCIONES ESP (SIN CAMBIOS) ***
+    local function removeESP(char)
+        local esp = char:FindFirstChild("ESP")
+        if esp then esp:Destroy() end
+    end
+
+    local function applyESP(p, char)
+        local myTeam = LocalPlayer:GetAttribute("Team")
+        local enemyTeam = p:GetAttribute("Team")
+        if p ~= LocalPlayer and myTeam ~= nil and enemyTeam ~= nil and enemyTeam ~= myTeam then
+            if char:FindFirstChild("ESP") then return end
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "ESP"
+            highlight.FillColor = Color3.fromRGB(255, 0, 0)
+            highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+            highlight.FillTransparency = 0.5
+            highlight.OutlineTransparency = 0
+            highlight.Adornee = char
+            highlight.Parent = char
+        else
+            removeESP(char)
+        end
+    end
+
+    local function updatePlayer(p)
+        if p.Character then applyESP(p, p.Character) end
+    end
+
+    local function setupPlayer(p)
+        if p == LocalPlayer then return end
+        p.CharacterAdded:Connect(function(char)
+            task.wait(0.5)
+            applyESP(p, char)
+        end)
+        p:GetAttributeChangedSignal("Team"):Connect(function() updatePlayer(p) end)
+        LocalPlayer:GetAttributeChangedSignal("Team"):Connect(function() updatePlayer(p) end)
+        if p.Character then applyESP(p, p.Character) end
+    end
+
+    -- *** FUNCIONES FARM (SIN CAMBIOS) ***
+    local function startFarm()
+        local META = 3000000000
+        local VELOCIDAD = 0.033
+        local remote = ReplicatedStorage:WaitForChild("CincoDeMayo2026"):WaitForChild("RemoteEvent")
+        local recolectado = 0
+        local inicio = tick()
+        
+        local function recolectar()
+            if not farmEnabled then return false end
+            local success = pcall(function()
+                remote:FireServer("collect")
+            end)
+            if success then
+                recolectado = recolectado + 1
+                if recolectado % 1000 == 0 then
+                    print("✅ Farm Event: " .. recolectado .. " items recolectados")
+                end
+            end
+            return success
+        end
+        
+        task.wait(3)
+        print("🚀 Farm CincoDeMayo2026 INICIADO!")
+        
+        farmCoroutine = coroutine.create(function()
+            while farmEnabled and recolectado < META do
+                if not recolectar() then
+                    task.wait(1)
+                end
+                task.wait(VELOCIDAD)
+            end
+            local tiempo = math.floor(tick() - inicio)
+            print("🎉 ¡FARM COMPLETADO! " .. recolectado .. " items en " .. tiempo .. "s")
+            farmEnabled = false
+            farmButton.Text = "🌾 Farm Event: OFF"
+            farmButton.BackgroundColor3 = Color3.fromRGB(80, 20, 20)
+        end)
+        coroutine.resume(farmCoroutine)
+    end
+
+    -- *** EVENTOS DE BOTONES ***
+    toggleButton.MouseButton1Click:Connect(function()
+        menuVisible = not menuVisible
+        if menuVisible then
+            mainFrame.Visible = true
+            TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back), {
+                Size = UDim2.new(0, 500, 0, 380),
+                Position = UDim2.new(0.5, -250, 0.5, -190)
+            }):Play()
+            toggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+        else
+            TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+                Size = UDim2.new(0, 0, 0, 0),
+                Position = UDim2.new(0.5, 0, 0.5, 0)
+            }):Play()
+            task.wait(0.3)
+            mainFrame.Visible = false
+            toggleButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+        end
+    end)
+
+    -- *** HITBOX TOGGLE (NUEVO) ***
+    hitboxToggleBtn.MouseButton1Click:Connect(function()
+        hitboxActive = not hitboxActive
+        if hitboxActive then
+            hitboxToggleBtn.Text = "📦 HITBOX EXPANDER\n✅ ON"
+            hitboxToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+            expandHitbox()
+            print("📦 Hitbox Activado: " .. hitboxSize)
+        else
+            hitboxToggleBtn.Text = "📦 HITBOX EXPANDER\n❌ OFF"
+            hitboxToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            resetHitbox()
+            print("📦 Hitbox Desactivado")
+        end
+    end)
+
+    -- ESP Toggle
+    espButton.MouseButton1Click:Connect(function()
+        espEnabled = not espEnabled
+        if espEnabled then
+            espButton.Text = "👁️ ESP: ON"
+            espButton.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
+            for _, p in ipairs(Players:GetPlayers()) do
+                setupPlayer(p)
+            end
+            espConnections.PlayerAdded = Players.PlayerAdded:Connect(setupPlayer)
+        else
+            espButton.Text = "👁️ ESP: OFF"
+            espButton.BackgroundColor3 = Color3.fromRGB(80, 20, 20)
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p.Character then removeESP(p.Character) end
+            end
+            if espConnections.PlayerAdded then
+                espConnections.PlayerAdded:Disconnect()
+            end
+        end
+    end)
+
+    -- Aimbot Toggle
+    aimbotButton.MouseButton1Click:Connect(function()
+        aimbotEnabled = not aimbotEnabled
+        if aimbotEnabled then
+            aimbotButton.Text = "🎯 Aimbot: ON"
+            aimbotButton.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
+            if not aimbotLoaded then
+                aimbotLoaded = true
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/badfacelivezz/Idkk/refs/heads/main/silient-aim-adukyyhub"))()
+            end
+        else
+            aimbotButton.Text = "🎯 Aimbot: OFF"
+            aimbotButton.BackgroundColor3 = Color3.fromRGB(80, 20, 20)
+        end
+    end)
+
+    -- Farm Toggle
+    farmButton.MouseButton1Click:Connect(function()
+        farmEnabled = not farmEnabled
+        if farmEnabled then
+            farmButton.Text = "🌾 Farm Event: ON"
+            farmButton.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
+            startFarm()
+        else
+            farmButton.Text = "🌾 Farm Event: OFF"
+            farmButton.BackgroundColor3 = Color3.fromRGB(80, 20, 20)
+        end
+    end)
+
+    -- Rejoin
+    rejoinButton.MouseButton1Click:Connect(function()
+        rejoinButton.Text = "🔄 Rejoining..."
+        rejoinButton.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+        task.wait(1)
+        game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer)
+    end)
+
+    -- *** DRAGGABLE (AJUSTADO) ***
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+
+    title.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+        end
+    end)
+
+    creditsMenu.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+        end
+    end)
+
+    title.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    creditsMenu.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        elseif draggingButton and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStartButton
+            toggleButton.Position = UDim2.new(startPosButton.X.Scale, startPosButton.X.Offset + delta.X, startPosButton.Y.Scale, startPosButton.Y.Offset + delta.Y)
+        elseif draggingSlider and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mouse = LocalPlayer:GetMouse()
+            local relativeX = math.clamp((mouse.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
+            hitboxSize = math.floor(8 + relativeX * 16)
+            sliderBtn.Position = UDim2.new(relativeX, -10, 0, 0)
+            hitboxLabel.Text = "📦 HITBOX SIZE: " .. hitboxSize
+            if hitboxActive then expandHitbox() end
+        end
+    end)
+
+    -- *** HOVER EFFECTS ***
+    local function addHover(button)
+        button.MouseEnter:Connect(function()
+            if button.BackgroundColor3 ~= Color3.fromRGB(0, 120, 0) and button.BackgroundColor3 ~= Color3.fromRGB(0, 255, 0) then
+                TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 20, 20)}):Play()
+            end
+        end)
+        button.MouseLeave:Connect(function()
+            local isActive = false
+            if button == espButton and espEnabled then isActive = true
+            elseif button == aimbotButton and aimbotEnabled then isActive = true
+            elseif button == farmButton and farmEnabled then isActive = true
+            elseif button == hitboxToggleBtn and hitboxActive then isActive = true end
+            
+            TweenService:Create(button, TweenInfo.new(0.2), {
+                BackgroundColor3 = isActive and (button == hitboxToggleBtn and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(0, 120, 0)) or Color3.fromRGB(35, 35, 35)
+            }):Play()
+        end)
+    end
+
+    addHover(espButton)
+    addHover(aimbotButton)
+    addHover(farmButton)
+    addHover(rejoinButton)
+    addHover(hitboxToggleBtn)
+
+    toggleButton.MouseEnter:Connect(function()
+        TweenService:Create(toggleButton, TweenInfo.new(0.2), {Size = UDim2.new(0, 55, 0, 55)}):Play()
+    end)
+
+    toggleButton.MouseLeave:Connect(function()
+        TweenService:Create(toggleButton, TweenInfo.new(0.2), {Size = UDim2.new(0, 50, 0, 50)}):Play()
+    end)
+
+    -- *** ANIMACIÓN INICIAL (AJUSTADA) ***
+    mainFrame.Visible = true
+    mainFrame.Size = UDim2.new(0, 0, 0, 0)
+    mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    mainStroke.Transparency = 1
+    toggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+
+    TweenService:Create(mainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Back), {
+        Size = UDim2.new(0, 500, 0, 380),
+        Position = UDim2.new(0.5, -250, 0.5, -190)
+    }):Play()
+
+    TweenService:Create(mainStroke, TweenInfo.new(0.8), {Transparency = 0}):Play()
+
+    print("🔥 LEON SCRIPT V4 CON HITBOX EXPANDER - BOTÓN LS MOVIBLE - KEY SYSTEM ACTIVADO 🔥")
+end
