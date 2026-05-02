@@ -48,7 +48,7 @@ local titleLoading = Instance.new("TextLabel")
 titleLoading.Size = UDim2.new(1, 0, 0, 120)
 titleLoading.Position = UDim2.new(0, 0, 0.25, 0)
 titleLoading.BackgroundTransparency = 1
-titleLoading.Text = "LEON SCRIPT V4"
+titleLoading.Text = "by alejandro_lxl"
 titleLoading.TextColor3 = Color3.fromRGB(255, 0, 0)
 titleLoading.TextScaled = true
 titleLoading.Font = Enum.Font.Code
@@ -95,7 +95,7 @@ TweenService:Create(progressBar, TweenInfo.new(2.5, Enum.EasingStyle.Quad), {
 }):Play()
 
 task.wait(2)
-subtitleLoading.Text = "¡LISTO!"
+subtitleLoading.Text = "¡GRACIAS POR USARME DELTERO!"
 task.wait(1.5)
 
 if matrixConnection then matrixConnection:Disconnect() end
@@ -192,7 +192,7 @@ verifyButton.MouseButton1Click:Connect(function()
         print("✅ KEY VERIFICADA - LEON SCRIPT V4 ACTIVADO")
     else
         keyInput.Text = ""
-        keyInput.PlaceholderText = "❌ Key incorrecta"
+        keyInput.PlaceholderText = "❌ Key incorrecta VALISTE"
         TweenService:Create(keyInputStroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(255, 0, 0)}):Play()
         task.wait(0.5)
         keyInput.PlaceholderText = "Ingresa la key: leon"
