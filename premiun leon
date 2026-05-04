@@ -244,7 +244,7 @@ verifyButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- *** FUNCIÓN PRINCIPAL DEL MENÚ (MODIFICADA PARA HITBOX) ***
+-- *** FUNCIÓN PRINCIPAL DEL MENÚ (COMPLETA CON BOTÓN TOGGLE MEJORADO) ***
 function loadMenu()
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "LeonMenu"
@@ -253,14 +253,14 @@ function loadMenu()
 
     local menuVisible = true
     local mainFrame = Instance.new("Frame")
-    mainFrame.Size = UDim2.new(0, 500, 0, 380) -- 🔧 AUMENTADO para Hitbox + Slider
+    mainFrame.Size = UDim2.new(0, 500, 0, 380)
     mainFrame.Position = UDim2.new(0.5, -250, 0.5, -190)
     mainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
     mainFrame.BorderSizePixel = 0
     mainFrame.Parent = screenGui
     mainFrame.Visible = false
 
-    -- *** LEON HUB TAG SYSTEM (SIN CAMBIOS) ***
+    -- *** LEON HUB TAG SYSTEM ***
     local leonHubTags = {}
     local function createLeonHubTag(char)
         if char:FindFirstChild("LeonHubTag") then return end
@@ -309,9 +309,9 @@ function loadMenu()
         p:GetAttributeChangedSignal("LeonHubUser"):Connect(function() checkLeonHubPlayer(p) end)
     end)
 
-    -- *** BOTÓN LS MOVIBLE (SIN CAMBIOS) ***
+    -- *** BOTÓN LS MOVIBLE MEJORADO (40x40 - TOTALMENTE DRAGGABLE) ***
     local toggleButton = Instance.new("TextButton")
-    toggleButton.Size = UDim2.new(0, 50, 0, 50)
+    toggleButton.Size = UDim2.new(0, 40, 0, 40) -- 🔧 PEQUEÑO 40x40
     toggleButton.Position = UDim2.new(0, 20, 0, 20)
     toggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
     toggleButton.Text = "LS"
@@ -326,26 +326,58 @@ function loadMenu()
 
     local toggleStroke = Instance.new("UIStroke")
     toggleStroke.Color = Color3.fromRGB(0, 0, 0)
-    toggleStroke.Thickness = 3
+    toggleStroke.Thickness = 2 -- 🔧 Stroke delgado
     toggleStroke.Parent = toggleButton
 
-    -- Draggable botón LS
+    -- *** DRAGGING COMPLETO PARA BOTÓN TOGGLE ***
     local draggingButton = false
     local dragStartButton = nil
     local startPosButton = nil
+    local connectionButton = nil
 
     toggleButton.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             draggingButton = true
             dragStartButton = input.Position
             startPosButton = toggleButton.Position
+            
+            connectionButton = UserInputService.InputChanged:Connect(function(inputBtn)
+                if draggingButton and inputBtn.UserInputType == Enum.UserInputType.MouseMovement then
+                    local delta = inputBtn.Position - dragStartButton
+                    toggleButton.Position = UDim2.new(
+                        startPosButton.X.Scale, 
+                        startPosButton.X.Offset + delta.X, 
+                        startPosButton.Y.Scale, 
+                        startPosButton.Y.Offset + delta.Y
+                    )
+                end
+            end)
         end
     end)
 
     toggleButton.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             draggingButton = false
+            if connectionButton then
+                connectionButton:Disconnect()
+                connectionButton = nil
+            end
         end
+    end)
+
+    -- *** HOVER EFFECTS MEJORADOS ***
+    toggleButton.MouseEnter:Connect(function()
+        TweenService:Create(toggleButton, TweenInfo.new(0.2), {
+            Size = UDim2.new(0, 45, 0, 45),
+            Rotation = 5
+        }):Play()
+    end)
+
+    toggleButton.MouseLeave:Connect(function()
+        TweenService:Create(toggleButton, TweenInfo.new(0.2), {
+            Size = UDim2.new(0, 40, 0, 40),
+            Rotation = 0
+        }):Play()
     end)
 
     -- *** ESTILOS VISUALES PRINCIPALES ***
@@ -379,7 +411,7 @@ function loadMenu()
     creditsMenu.TextSize = 14
     creditsMenu.Parent = mainFrame
 
-    -- *** SCROLL FRAME PARA BOTONES (NUEVO) ***
+    -- *** SCROLL FRAME PARA BOTONES ***
     local scrollFrame = Instance.new("ScrollingFrame")
     scrollFrame.Size = UDim2.new(0.95, 0, 0.78, -50)
     scrollFrame.Position = UDim2.new(0.025, 0, 0.22, 0)
@@ -387,7 +419,7 @@ function loadMenu()
     scrollFrame.BorderSizePixel = 0
     scrollFrame.ScrollBarThickness = 6
     scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 50, 50)
-    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 600) -- Alto suficiente para todos los botones
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 600)
     scrollFrame.Parent = mainFrame
 
     local listLayout = Instance.new("UIListLayout")
@@ -395,7 +427,7 @@ function loadMenu()
     listLayout.Padding = UDim.new(0, 8)
     listLayout.Parent = scrollFrame
 
-    -- *** BOTÓN HITBOX EXPANDER CON SLIDER (NUEVO) ***
+    -- *** BOTÓN HITBOX EXPANDER CON SLIDER ***
     local hitboxToggleBtn = Instance.new("TextButton")
     hitboxToggleBtn.Size = UDim2.new(1, -12, 0, 45)
     hitboxToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
@@ -415,7 +447,7 @@ function loadMenu()
     hitboxBtnStroke.Thickness = 2
     hitboxBtnStroke.Parent = hitboxToggleBtn
 
-    -- *** SLIDER HITBOX (NUEVO) ***
+    -- *** SLIDER HITBOX ***
     local hitboxSliderFrame = Instance.new("Frame")
     hitboxSliderFrame.Size = UDim2.new(1, -12, 0, 70)
     hitboxSliderFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
@@ -470,18 +502,7 @@ function loadMenu()
         end
     end)
 
-    UserInputService.InputChanged:Connect(function(input)
-        if draggingSlider and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local mouse = LocalPlayer:GetMouse()
-            local relativeX = math.clamp((mouse.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
-            hitboxSize = math.floor(8 + relativeX * 16)
-            sliderBtn.Position = UDim2.new(relativeX, -10, 0, 0)
-            hitboxLabel.Text = "📦 HITBOX SIZE: " .. hitboxSize
-            if hitboxActive then expandHitbox() end
-        end
-    end)
-
-    -- *** BOTONES EXISTENTES (AJUSTADOS) ***
+    -- *** BOTONES EXISTENTES ***
     local espButton = Instance.new("TextButton")
     espButton.Size = UDim2.new(1, -12, 0, 35)
     espButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
@@ -566,7 +587,7 @@ function loadMenu()
     local farmEnabled = false
     local farmCoroutine = nil
 
-    -- *** LOOP HITBOX (AGREGADO) ***
+    -- *** LOOP HITBOX ***
     spawn(function()
         while wait(0.1) do
             if hitboxActive then
@@ -575,7 +596,7 @@ function loadMenu()
         end
     end)
 
-    -- *** FUNCIONES ESP (SIN CAMBIOS) ***
+    -- *** FUNCIONES ESP ***
     local function removeESP(char)
         local esp = char:FindFirstChild("ESP")
         if esp then esp:Destroy() end
@@ -614,7 +635,7 @@ function loadMenu()
         if p.Character then applyESP(p, p.Character) end
     end
 
-    -- *** FUNCIONES FARM (SIN CAMBIOS) ***
+    -- *** FUNCIONES FARM ***
     local function startFarm()
         local META = 3000000000
         local VELOCIDAD = 0.033
@@ -676,7 +697,19 @@ function loadMenu()
         end
     end)
 
-    -- *** HITBOX TOGGLE (NUEVO) ***
+    -- *** SLIDER HITBOX LOGIC (CORREGIDO) ***
+    UserInputService.InputChanged:Connect(function(input)
+        if draggingSlider and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mouse = LocalPlayer:GetMouse()
+            local relativeX = math.clamp((mouse.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
+            hitboxSize = math.floor(8 + relativeX * 16)
+            sliderBtn.Position = UDim2.new(relativeX, -10, 0, 0)
+            hitboxLabel.Text = "📦 HITBOX SIZE: " .. hitboxSize
+            if hitboxActive then expandHitbox() end
+        end
+    end)
+
+    -- *** HITBOX TOGGLE ***
     hitboxToggleBtn.MouseButton1Click:Connect(function()
         hitboxActive = not hitboxActive
         if hitboxActive then
@@ -751,7 +784,7 @@ function loadMenu()
         game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer)
     end)
 
-    -- *** DRAGGABLE (AJUSTADO) ***
+    -- *** DRAGGABLE MENÚ PRINCIPAL ***
     local dragging = false
     local dragStart = nil
     local startPos = nil
@@ -788,16 +821,6 @@ function loadMenu()
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStart
             mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        elseif draggingButton and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStartButton
-            toggleButton.Position = UDim2.new(startPosButton.X.Scale, startPosButton.X.Offset + delta.X, startPosButton.Y.Scale, startPosButton.Y.Offset + delta.Y)
-        elseif draggingSlider and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local mouse = LocalPlayer:GetMouse()
-            local relativeX = math.clamp((mouse.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
-            hitboxSize = math.floor(8 + relativeX * 16)
-            sliderBtn.Position = UDim2.new(relativeX, -10, 0, 0)
-            hitboxLabel.Text = "📦 HITBOX SIZE: " .. hitboxSize
-            if hitboxActive then expandHitbox() end
         end
     end)
 
@@ -827,15 +850,7 @@ function loadMenu()
     addHover(rejoinButton)
     addHover(hitboxToggleBtn)
 
-    toggleButton.MouseEnter:Connect(function()
-        TweenService:Create(toggleButton, TweenInfo.new(0.2), {Size = UDim2.new(0, 55, 0, 55)}):Play()
-    end)
-
-    toggleButton.MouseLeave:Connect(function()
-        TweenService:Create(toggleButton, TweenInfo.new(0.2), {Size = UDim2.new(0, 50, 0, 50)}):Play()
-    end)
-
-    -- *** ANIMACIÓN INICIAL (AJUSTADA) ***
+    -- *** ANIMACIÓN INICIAL ***
     mainFrame.Visible = true
     mainFrame.Size = UDim2.new(0, 0, 0, 0)
     mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -849,5 +864,5 @@ function loadMenu()
 
     TweenService:Create(mainStroke, TweenInfo.new(0.8), {Transparency = 0}):Play()
 
-    print("🔥 LEON SCRIPT V4 CON HITBOX EXPANDER - BOTÓN LS MOVIBLE - KEY SYSTEM ACTIVADO 🔥")
+    print("🔥 LEON SCRIPT V4 CON HITBOX EXPANDER - BOTÓN LS 40x40 MOVIBLE - KEY SYSTEM ACTIVADO 🔥")
 end
