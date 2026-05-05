@@ -11,6 +11,13 @@ local hitboxActive = false
 local hitboxSize = 12
 local originalSizes = {}
 
+-- *** VARIABLE GLOBAL AIMBOT ***
+_G.AimbotEnabled = false
+
+-- *** VARIABLES ESTIRADA ***
+local stretchedScreenEnabled = false
+local stretchedConnection = nil
+
 -- *** FUNCIÓN EXPANDIR HITBOX (AGREGADA) ***
 function expandHitbox()
     if not hitboxActive then return end
@@ -46,6 +53,32 @@ function resetHitbox()
         end
     end
     originalSizes = {}
+end
+
+-- *** FUNCIÓN PANTALLA ESTIRADA ***
+function toggleStretchedScreen()
+    local Camera = workspace.CurrentCamera
+    
+    if stretchedScreenEnabled then
+        if stretchedConnection then
+            stretchedConnection:Disconnect()
+            stretchedConnection = nil
+        end
+        getgenv().gg_scripters = nil
+        stretchedScreenEnabled = false
+        print("🖥️ Pantalla estirada DESACTIVADA")
+    else
+        getgenv().Resolution = {
+            [".gg/scripters"] = 0.65
+        }
+        
+        stretchedConnection = game:GetService("RunService").RenderStepped:Connect(function()
+            Camera.CFrame = Camera.CFrame * CFrame.new(0, 0, 0, 1, 0, 0, 0, getgenv().Resolution[".gg/scripters"], 0, 0, 0, 1)
+        end)
+        getgenv().gg_scripters = "Aori0001"
+        stretchedScreenEnabled = true
+        print("🖥️ Pantalla estirada ACTIVADA")
+    end
 end
 
 -- PANTALLA DE CARGA MEJORADA (SIN CAMBIOS)
@@ -253,8 +286,8 @@ function loadMenu()
 
     local menuVisible = true
     local mainFrame = Instance.new("Frame")
-    mainFrame.Size = UDim2.new(0, 500, 0, 380)
-    mainFrame.Position = UDim2.new(0.5, -250, 0.5, -190)
+    mainFrame.Size = UDim2.new(0, 500, 0, 420)
+    mainFrame.Position = UDim2.new(0.5, -250, 0.5, -210)
     mainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
     mainFrame.BorderSizePixel = 0
     mainFrame.Parent = screenGui
@@ -419,7 +452,7 @@ function loadMenu()
     scrollFrame.BorderSizePixel = 0
     scrollFrame.ScrollBarThickness = 6
     scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 50, 50)
-    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 600)
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 700)
     scrollFrame.Parent = mainFrame
 
     local listLayout = Instance.new("UIListLayout")
@@ -488,19 +521,25 @@ function loadMenu()
     sliderBtnCorner.CornerRadius = UDim.new(0, 10)
     sliderBtnCorner.Parent = sliderBtn
 
-    -- *** LÓGICA SLIDER HITBOX ***
-    local draggingSlider = false
-    sliderBtn.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            draggingSlider = true
-        end
-    end)
+    -- *** BOTÓN PANTALLA ESTIRADA ***
+    local stretchedButton = Instance.new("TextButton")
+    stretchedButton.Size = UDim2.new(1, -12, 0, 35)
+    stretchedButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    stretchedButton.Text = "🖥️ Pantalla Estirada: OFF"
+    stretchedButton.TextColor3 = Color3.fromRGB(255, 50, 50)
+    stretchedButton.TextScaled = true
+    stretchedButton.Font = Enum.Font.Code
+    stretchedButton.LayoutOrder = 3
+    stretchedButton.Parent = scrollFrame
 
-    sliderBtn.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            draggingSlider = false
-        end
-    end)
+    local stretchedCorner = Instance.new("UICorner")
+    stretchedCorner.CornerRadius = UDim.new(0, 8)
+    stretchedCorner.Parent = stretchedButton
+
+    local stretchedStroke = Instance.new("UIStroke")
+    stretchedStroke.Color = Color3.fromRGB(255, 50, 50)
+    stretchedStroke.Thickness = 2
+    stretchedStroke.Parent = stretchedButton
 
     -- *** BOTONES EXISTENTES ***
     local espButton = Instance.new("TextButton")
@@ -510,7 +549,7 @@ function loadMenu()
     espButton.TextColor3 = Color3.fromRGB(255, 50, 50)
     espButton.TextScaled = true
     espButton.Font = Enum.Font.Code
-    espButton.LayoutOrder = 3
+    espButton.LayoutOrder = 4
     espButton.Parent = scrollFrame
 
     local espCorner = Instance.new("UICorner")
@@ -529,7 +568,7 @@ function loadMenu()
     aimbotButton.TextColor3 = Color3.fromRGB(255, 50, 50)
     aimbotButton.TextScaled = true
     aimbotButton.Font = Enum.Font.Code
-    aimbotButton.LayoutOrder = 4
+    aimbotButton.LayoutOrder = 5
     aimbotButton.Parent = scrollFrame
 
     local aimbotCorner = Instance.new("UICorner")
@@ -548,7 +587,7 @@ function loadMenu()
     farmButton.TextColor3 = Color3.fromRGB(255, 50, 50)
     farmButton.TextScaled = true
     farmButton.Font = Enum.Font.Code
-    farmButton.LayoutOrder = 5
+    farmButton.LayoutOrder = 6
     farmButton.Parent = scrollFrame
 
     local farmCorner = Instance.new("UICorner")
@@ -567,7 +606,7 @@ function loadMenu()
     rejoinButton.TextColor3 = Color3.fromRGB(255, 50, 50)
     rejoinButton.TextScaled = true
     rejoinButton.Font = Enum.Font.Code
-    rejoinButton.LayoutOrder = 6
+    rejoinButton.LayoutOrder = 7
     rejoinButton.Parent = scrollFrame
 
     local rejoinCorner = Instance.new("UICorner")
@@ -682,8 +721,8 @@ function loadMenu()
         if menuVisible then
             mainFrame.Visible = true
             TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back), {
-                Size = UDim2.new(0, 500, 0, 380),
-                Position = UDim2.new(0.5, -250, 0.5, -190)
+                Size = UDim2.new(0, 500, 0, 420),
+                Position = UDim2.new(0.5, -250, 0.5, -210)
             }):Play()
             toggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
         else
@@ -698,6 +737,19 @@ function loadMenu()
     end)
 
     -- *** SLIDER HITBOX LOGIC (CORREGIDO) ***
+    local draggingSlider = false
+    sliderBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            draggingSlider = true
+        end
+    end)
+
+    sliderBtn.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            draggingSlider = false
+        end
+    end)
+
     UserInputService.InputChanged:Connect(function(input)
         if draggingSlider and input.UserInputType == Enum.UserInputType.MouseMovement then
             local mouse = LocalPlayer:GetMouse()
@@ -725,6 +777,18 @@ function loadMenu()
         end
     end)
 
+    -- *** PANTALLA ESTIRADA TOGGLE ***
+    stretchedButton.MouseButton1Click:Connect(function()
+        toggleStretchedScreen()
+        if stretchedScreenEnabled then
+            stretchedButton.Text = "🖥️ Pantalla Estirada: ON"
+            stretchedButton.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
+        else
+            stretchedButton.Text = "🖥️ Pantalla Estirada: OFF"
+            stretchedButton.BackgroundColor3 = Color3.fromRGB(80, 20, 20)
+        end
+    end)
+
     -- ESP Toggle
     espButton.MouseButton1Click:Connect(function()
         espEnabled = not espEnabled
@@ -747,9 +811,11 @@ function loadMenu()
         end
     end)
 
-    -- Aimbot Toggle
+    -- *** AIMBOT TOGGLE MEJORADO ***
     aimbotButton.MouseButton1Click:Connect(function()
         aimbotEnabled = not aimbotEnabled
+        _G.AimbotEnabled = aimbotEnabled
+        
         if aimbotEnabled then
             aimbotButton.Text = "🎯 Aimbot: ON"
             aimbotButton.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
@@ -760,6 +826,26 @@ function loadMenu()
         else
             aimbotButton.Text = "🎯 Aimbot: OFF"
             aimbotButton.BackgroundColor3 = Color3.fromRGB(80, 20, 20)
+            
+            -- DESACTIVAR AIMBOT COMPLETAMENTE
+            _G.AimbotEnabled = false
+            pcall(function()
+                if _G.DisableAimbot then
+                    _G.DisableAimbot()
+                end
+                if _G.ToggleAimbot then
+                    _G.ToggleAimbot(false)
+                end
+            end)
+            
+            -- Limpiar conexiones y variables comunes del aimbot
+            for _, connection in pairs(getconnections(game:GetService("UserInputService").InputBegan)) do
+                if connection.Function and (tostring(connection.Function):find("aim") or tostring(connection.Function):find("target")) then
+                    connection:Disable()
+                end
+            end
+            
+            print("🛑 Aimbot desactivado completamente")
         end
     end)
 
@@ -836,10 +922,11 @@ function loadMenu()
             if button == espButton and espEnabled then isActive = true
             elseif button == aimbotButton and aimbotEnabled then isActive = true
             elseif button == farmButton and farmEnabled then isActive = true
-            elseif button == hitboxToggleBtn and hitboxActive then isActive = true end
+            elseif button == hitboxToggleBtn and hitboxActive then isActive = true
+            elseif button == stretchedButton and stretchedScreenEnabled then isActive = true end
             
             TweenService:Create(button, TweenInfo.new(0.2), {
-                BackgroundColor3 = isActive and (button == hitboxToggleBtn and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(0, 120, 0)) or Color3.fromRGB(35, 35, 35)
+                BackgroundColor3 = isActive and Color3.fromRGB(0, 120, 0) or Color3.fromRGB(35, 35, 35)
             }):Play()
         end)
     end
@@ -849,6 +936,7 @@ function loadMenu()
     addHover(farmButton)
     addHover(rejoinButton)
     addHover(hitboxToggleBtn)
+    addHover(stretchedButton)
 
     -- *** ANIMACIÓN INICIAL ***
     mainFrame.Visible = true
@@ -858,11 +946,18 @@ function loadMenu()
     toggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
 
     TweenService:Create(mainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Back), {
-        Size = UDim2.new(0, 500, 0, 380),
-        Position = UDim2.new(0.5, -250, 0.5, -190)
+        Size = UDim2.new(0, 500, 0, 420),
+        Position = UDim2.new(0.5, -250, 0.5, -210)
     }):Play()
 
     TweenService:Create(mainStroke, TweenInfo.new(0.8), {Transparency = 0}):Play()
 
-    print("🔥 LEON SCRIPT V4 CON HITBOX EXPANDER - BOTÓN LS 40x40 MOVIBLE - KEY SYSTEM ACTIVADO 🔥")
+    -- *** CLEANUP AIMBOT AL CERRAR ***
+    game:GetService("Players").LocalPlayer.AncestryChanged:Connect(function()
+        if not game:GetService("Players").LocalPlayer.Parent then
+            _G.AimbotEnabled = false
+        end
+    end)
+
+    print("🔥 LEON SCRIPT V4 CON HITBOX + PANTALLA ESTIRADA + AIMBOT MEJORADO - BOTÓN LS 40x40 MOVIBLE - KEY SYSTEM ACTIVADO 🔥")
 end
