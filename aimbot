@@ -1,0 +1,141 @@
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "Silent Aim 75% (Realista)",
+    Text = "Script Activado - 75% Acierto",
+    Duration = 5
+})
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+local Camera = workspace.CurrentCamera
+local RunService = game:GetService("RunService")
+
+-- Configuración de precisión (75%)
+local AIM_CHANCE = 0.75  -- 75% probabilidad de aimbot
+local SPREAD_RANGE = 0.3 -- Rango de dispersión
+local PRIORITY_FOV = 120 -- FOV máximo para priorizar
+
+local mt = getrawmetatable(game)
+local oldIndex = mt.__index
+setreadonly(mt, false)
+
+-- Cache para mejor rendimiento
+local targetCache = nil
+local lastCacheUpdate = 0
+local CACHE_TIME = 0.1
+
+local function randomChance(chance)
+    return math.random() < chance
+end
+
+local function addSpread(position, strength)
+    local spread = Vector3.new(
+        (math.random() - 0.5) * strength,
+        (math.random() - 0.5) * strength,
+        (math.random() - 0.5) * strength * 0.5
+    )
+    return position + spread
+end
+
+local function isEnemyVisible(targetPart)
+    if not targetPart then return false end
+    
+    local origin = Camera.CFrame.Position
+    local destination = targetPart.Position
+    local direction = (destination - origin).Unit * 1000
+    
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterDescendantsInstances = {LocalPlayer.Character, Camera}
+    raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+    
+    local raycastResult = workspace:Raycast(origin, direction, raycastParams)
+    
+    if raycastResult then
+        return raycastResult.Instance:IsDescendantOf(targetPart.Parent)
+    end
+    
+    return false
+end
+
+local function getBestTarget()
+    -- Usar cache para mejor rendimiento
+    if targetCache and tick() - lastCacheUpdate < CACHE_TIME then
+        return targetCache
+    end
+    
+    local target = nil
+    local shortestDistance = math.huge
+    local myTeam = LocalPlayer:GetAttribute("Team")
+    local mousePos = Vector2.new(Mouse.X, Mouse.Y)
+
+    for _, p in pairs(Players:GetPlayers()) do
+        local pTeam = p:GetAttribute("Team")
+        
+        if p ~= LocalPlayer
+        and p.Character
+        and p.Character:FindFirstChild("Head")
+        and p.Character:FindFirstChild("Humanoid")
+        and p.Character.Humanoid.Health > 0
+        and (pTeam == nil or myTeam == nil or pTeam ~= myTeam) then
+            
+            local head = p.Character.Head
+            local pos, onScreen = Camera:WorldToViewportPoint(head.Position)
+            
+            if onScreen then
+                local screenDistance = (Vector2.new(pos.X, pos.Y) - mousePos).Magnitude
+                
+                -- Solo considerar enemigos dentro del FOV
+                if screenDistance < PRIORITY_FOV and isEnemyVisible(head) then
+                    if screenDistance < shortestDistance then
+                        target = head
+                        shortestDistance = screenDistance
+                    end
+                end
+            end
+        end
+    end
+    
+    targetCache = target
+    lastCacheUpdate = tick()
+    return target
+end
+
+mt.__index = newcclosure(function(self, index)
+    if self == Mouse and (index == "Hit" or index == "Target") then
+        local target = getBestTarget()
+        
+        if target and randomChance(AIM_CHANCE) then -- 75% de probabilidad
+            local aimPosition = target.Position
+            
+            -- Agregar dispersión realista
+            if randomChance(0.6) then -- 60% chance de spread
+                aimPosition = addSpread(aimPosition, SPREAD_RANGE)
+            end
+            
+            -- Ocasionalmente apuntar a torso en lugar de cabeza (más realista)
+            if randomChance(0.3) then
+                local torso = target.Parent:FindFirstChild("Torso") or target.Parent:FindFirstChild("UpperTorso")
+                if torso then
+                    aimPosition = addSpread(torso.Position, SPREAD_RANGE * 0.8)
+                end
+            end
+            
+            return (index == "Hit" and CFrame.new(aimPosition) or aimPosition)
+        end
+    end
+    return oldIndex(self, index)
+end)
+
+setreadonly(mt, true)
+
+-- Notificación de estado
+spawn(function()
+    while true do
+        wait(10)
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Silent Aim Status",
+            Text = "Precisión: " .. math.floor(AIM_CHANCE * 100) .. "% | Activo",
+            Duration = 3
+        })
+    end
+end)
